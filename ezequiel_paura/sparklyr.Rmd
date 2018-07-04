@@ -170,7 +170,7 @@ sales_sdf %>%
 ### Problem
 Could you move this function to a separate file `salesData.R`, import it from there and use it here?
 
-```{r}
+```{r} 
 source("~/sparklyr_exercise/ezequiel_paura/salesData.R")
 ```
 
@@ -182,18 +182,51 @@ Steps to do:
 
 1. Data preparation
 ```{r}
-sales_sdf<- read_sales(49:59,c(2014,2015), 1:12)
+sales_sdf<-sales_sdf <- spark_read_csv(sc, "sales", "../future_sales_data/sales_train.csv.gz")
+sales_sdf %>%
+  mutate(dt=to_timestamp(unix_timestamp(date, 'dd.MM.yyyy'))) %>%
+  mutate(year=year(dt), month=month(dt)) %>%
+  select(-dt) ->
+  sales_sdf
+
+```
+
+```{r}
 sales_sdf %>% 
   group_by(shop_id, year, month) %>% 
-  summarise(total_sales=sum(item_cnt_day))
+  summarise(total_sales=sum(item_cnt_day, na.rm=T))-> monthly_sdf
 ```
 
 
 2. Train-test splitting
+
+```{r}
+train_sdf <- monthly_sdf %>% 
+  filter(year == 2015 & month != 10)
+
+test_sdf <- monthly_sdf %>% 
+  filter(year == 2015 & month == 10)
+  
+```
+
 3. Training simple linear model
+```{r}
+train_sdf %>% 
+  ml_linear_regression((total_sales ~ shop_id + year +month ))-> model 
+```
+
+```{r}
+model
+```
+
+
 4. Evaluating: implementing MSE & R2 
 
-
-
+```{r}
+train_sdf %>% 
+  sdf_predict(model) %>% 
+  mutate(res=total_sales - prediction) %>% 
+    summarise(mean(res*res))
+```
 
 

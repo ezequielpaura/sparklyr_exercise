@@ -49,6 +49,9 @@ read_sales <- function(shop_ids, years, months) {
 # Steps to do:
 #   
 # 1. Data preparation
+
+
+
 # 2. Train-test splitting
 # 3. Training simple linear model
 # 4. Evaluating: implementing MSE & R2 
