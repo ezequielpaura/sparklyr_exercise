@@ -195,6 +195,12 @@ sales_sdf %>%
 sales_sdf %>% 
   group_by(shop_id, year, month) %>% 
   summarise(total_sales=sum(item_cnt_day, na.rm=T))-> monthly_sdf
+
+sdf_register(monthly_sdf, "sales_monthly")
+```
+```{r}
+library(DBI)
+dbGetQuery(sc, "SELECT * FROM sales_monthly LIMIT 10")
 ```
 
 
